@@ -9,11 +9,18 @@
 
 int main(int argc, char const *argv[]) {
     if (argc < 2) {
-        printf("Usage: %s <server_ip>\n", argv[0]);
+        printf("Usage: %s <server_ip> [start_idx end_idx]\n", argv[0]);
         return -1;
     }
     
     const char *server_ip = argv[1];
+    
+    int start_idx = 500;
+    int end_idx = 510;
+    if (argc >= 4) {
+        start_idx = atoi(argv[2]);
+        end_idx = atoi(argv[3]);
+    }
 
     int sock = 0;
     struct sockaddr_in serv_addr;
@@ -64,8 +71,8 @@ int main(int argc, char const *argv[]) {
         printf("Max value: %f\n", max);
         printf("Average weight: %f\n", sum / MODEL_SIZE);
         
-        printf("\nDetailed look at fraud indicator features (Params 500-510):\n");
-        for(int i = 500; i <= 510; i++) {
+        printf("\nDetailed look at model features (Params %d-%d):\n", start_idx, end_idx);
+        for(int i = start_idx; i <= end_idx && i < MODEL_SIZE; i++) {
             printf("Weight[%d] = %f\n", i, response.model_weights[i]);
         }
     } else {

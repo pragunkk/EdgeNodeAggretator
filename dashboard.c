@@ -191,7 +191,21 @@ int main() {
                 if (guest_selected == 0) {
                     clear_screen();
                     printf(COLOR_GREEN "--- View Model Weights ---\n" COLOR_RESET);
-                    sprintf(command_buf, "./guest_client %s", server_ip);
+                    int start_idx = 500, end_idx = 510;
+                    char input[256];
+                    printf("Enter range of array elements to view (min: 0, max: 999).\n");
+                    printf("Format: start_idx end_idx (e.g., 500 510)\n");
+                    printf("Or just press Enter to use default (500 510): ");
+                    if (fgets(input, sizeof(input), stdin)) {
+                        if (input[0] != '\n' && input[0] != '\r') {
+                            sscanf(input, "%d %d", &start_idx, &end_idx);
+                        }
+                    }
+                    if (start_idx < 0) start_idx = 0;
+                    if (end_idx > 999) end_idx = 999;
+                    if (start_idx > end_idx) start_idx = end_idx;
+
+                    sprintf(command_buf, "./guest_client %s %d %d", server_ip, start_idx, end_idx);
                     printf(COLOR_YELLOW "\nExecuting: %s\n" COLOR_RESET, command_buf);
                     system(command_buf);
                     
@@ -234,7 +248,21 @@ int main() {
                 clear_screen();
                 if (admin_selected == 0) {
                     printf(COLOR_GREEN "--- View Model Weights ---\n" COLOR_RESET);
-                    sprintf(command_buf, "./guest_client %s", server_ip);
+                    int start_idx = 500, end_idx = 510;
+                    char input[256];
+                    printf("Enter range of array elements to view (min: 0, max: 999).\n");
+                    printf("Format: start_idx end_idx (e.g., 500 510)\n");
+                    printf("Or just press Enter to use default (500 510): ");
+                    if (fgets(input, sizeof(input), stdin)) {
+                        if (input[0] != '\n' && input[0] != '\r') {
+                            sscanf(input, "%d %d", &start_idx, &end_idx);
+                        }
+                    }
+                    if (start_idx < 0) start_idx = 0;
+                    if (end_idx > 999) end_idx = 999;
+                    if (start_idx > end_idx) start_idx = end_idx;
+
+                    sprintf(command_buf, "./guest_client %s %d %d", server_ip, start_idx, end_idx);
                     printf(COLOR_YELLOW "\nExecuting: %s\n" COLOR_RESET, command_buf);
                     system(command_buf);
                     
