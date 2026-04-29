@@ -78,3 +78,19 @@ This section details exactly where and how I have implemented each mandatory pro
   1. **Shared Memory (`<sys/shm.h>`):** I mapped a localized `SharedMemoryBlock` struct between my parent and child processes. 
   2. **POSIX Semaphores (`<semaphore.h>`):** I wrote logic where the parent and child use `sem_wait()` and `sem_post()` on named semaphores (`/fedavg_sem_write`) to govern memory traffic perfectly.
   3. **Signals (`<signal.h>`):** My application relies heavily on asynchronous signaling `kill(evaluator_pid, SIGUSR1)` to instantly wake the sleeping evaluator only when new data requires processing!
+
+---
+
+## 🧗 Challenges Faced and Solutions
+
+### 1. Concurrency and Deadlocks in Fine-Grained Locking
+**Challenge:** When implementing fine-grained locking for the `global_weights` array, I initially faced issues with potential deadlocks and race conditions. Managing an array of mutexes (`chunk_locks`) meant that if multiple threads tried to acquire locks for overlapping chunks in a different order, the server could halt entirely.
+**Solution:** I solved this by ensuring a strict lock acquisition protocol. Locks are always acquired sequentially to prevent circular wait conditions. Additionally, I limited the lock scope to the absolute minimum required operations to reduce lock contention and maximize parallel performance.
+
+### 2. Complex Inter-Process Communication (IPC) Synchronization
+**Challenge:** Coordinating the main server process and the forked asynchronous evaluator process using Shared Memory, Semaphores, and Signals simultaneously was highly complex. Early implementations led to orphaned semaphores and memory leaks when the server crashed or exited unexpectedly.
+**Solution:** I implemented robust cleanup handlers using `atexit()` and signal trapping (`SIGINT`, `SIGTERM`) to ensure named semaphores and shared memory segments are safely unlinked and destroyed upon server termination. For signaling, I paired `SIGUSR1` with semaphore checks to ensure the evaluator safely sleeps and wakes up without losing evaluation triggers.
+
+### 3. Handling Network Protocol Data Over TCP
+**Challenge:** Sending structured C structs (`NetworkPayload`) over raw TCP sockets introduced challenges with fragmented packet deliveries. Because TCP is a stream protocol, `recv()` is not guaranteed to read the entire struct in a single call, which could lead to corrupted memory reads.
+**Solution:** I ensured that the data transmission uses explicitly sized fields, and the server strictly validates the incoming payload before processing. I also structured the socket reads and writes to confirm the exact byte counts expected for the `NetworkPayload` and array chunks.
